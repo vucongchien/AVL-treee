@@ -1,0 +1,182 @@
+#pragma once
+#include<iostream>
+#include<string>
+#include<fstream>
+using namespace std;
+struct HanhKhach {
+    char soCMND[30];
+    string ho;
+    string ten;
+    string phai;
+};
+void nhap_thong_tin_HanhKhach(HanhKhach& hk) {
+    cin >> hk.soCMND;
+    cin >> hk.ho >> hk.ten >> hk.phai;
+}
+struct Node {
+    HanhKhach data;
+    Node* left;
+    Node* right;
+    int height;
+};
+class QLHK {
+private:
+    //goc
+    Node* root;
+
+    int height(Node* N) {
+        if (N == NULL) {
+            return 0;
+        }
+        return N->height;
+    }
+    Node* newNode(HanhKhach hanhkhack) {
+        Node* newnode = new Node();
+        newnode->data = hanhkhack;
+        newnode->left = NULL;
+        newnode->right = NULL;
+        newnode->height = 1;
+        return newnode;
+    }
+    Node* rightRotate(Node* y) {
+        //chat gbt
+        Node* x = y->left;
+        Node* T2 = x->right;
+        x->right = y;
+        y->left = T2;
+        y->height = max(height(y->left), height(y->right)) + 1;
+        x->height = max(height(x->left), height(x->right)) + 1;
+        return x;
+    }
+    Node* leftRotate(Node* x) {
+        //chat gbt
+        Node* y = x->right;
+        Node* T2 = y->left;
+        y->left = x;
+        x->right = T2;
+        x->height = max(height(x->left), height(x->right)) + 1;
+        y->height = max(height(y->left), height(y->right)) + 1;
+        return y;
+    }
+    int getBlance(Node* N) {
+        if (N == NULL) {
+            return 0;
+        }
+        return height(N->left) - height(N->right);
+    }
+    Node* insertUtil(Node* node, HanhKhach hanhkhach) {
+        if (node == NULL) {
+            return newNode(hanhkhach);
+        }
+
+        if (hanhkhach.soCMND < node->data.soCMND) {
+            node->left = insertUtil(node->left, hanhkhach);
+        }
+        else if (hanhkhach.soCMND > node->data.soCMND) {
+            node->right = insertUtil(node->right, hanhkhach);
+        }
+        else {
+            // Handle duplicates if needed
+            // For example, update existing node with new data
+            // node->data = hanhkhach;
+            return node;
+        }
+
+        node->height = 1 + max(height(node->left), height(node->right));
+
+        int balance = getBlance(node);
+
+        if (balance > 1 && hanhkhach.soCMND < node->left->data.soCMND) {
+            return rightRotate(node);
+        }
+
+        if (balance < -1 && hanhkhach.soCMND > node->right->data.soCMND) {
+            return leftRotate(node);
+        }
+
+        if (balance > 1 && hanhkhach.soCMND > node->left->data.soCMND) {
+            node->left = leftRotate(node->left);
+            return rightRotate(node);
+        }
+
+        if (balance < -1 && hanhkhach.soCMND < node->right->data.soCMND) {
+            node->right = rightRotate(node->right);
+            return leftRotate(node);
+        }
+
+        return node;
+    }
+
+public:
+    QLHK() {
+        root = NULL;
+    }
+    Node* insert(HanhKhach hanhkhach) {
+        root = insertUtil(root, hanhkhach);
+        return root;
+    }
+    void printf_ds(Node* run) {
+        if (run == NULL) {
+            return;
+        }
+        printf_ds(run->left); // Duyệt qua cây con trái
+        cout << "CMND: " << run->data.soCMND << endl;
+        cout << "name: " << run->data.ho << " " << run->data.ten << endl;
+        cout << "Gen: " << run->data.phai << endl;
+        cout << "---------------------" << endl;
+        printf_ds(run->right); // Duyệt qua cây con phải
+    }
+    void search(string soCMND) {
+        Node* curr = root;
+        while (curr != NULL) {
+            if (curr->data.soCMND == soCMND) {
+                cout << "----------------viet code--------" << endl;
+                cout << "da tim thay" << endl;
+                return;
+            }
+            else if (soCMND < curr->data.soCMND) {
+                curr = curr->left;
+            }
+            else {
+                curr = curr->right;
+            }
+        }
+        cout << "KHONG CO /n";
+        return;
+    }
+    Node* minValueNode(Node* node) {
+        Node* current = node;
+        while (current && current->left != NULL) {
+            current = current->left;
+        }
+        return current;
+    }
+    Node* getRoot() {
+        return root;
+    }
+
+    void xoa_va_cap_nhat_file(Node* root) {
+        
+        ofstream file("hanhkhach.txt");
+        file.close(); 
+
+        // Gọi hàm để ghi lại nội dung mới từ cây nhị phân vào tệp
+        them_vao_file(root);
+    }
+
+    void them_vao_file(Node* run) {
+        if (run == NULL) {
+            return;
+        }
+        ofstream file;
+        file.open("hanhkhach.txt", ios::app);
+        file << run->data.soCMND << endl;
+        file << run->data.ho << " " << run->data.ten << endl;
+        file << run->data.phai << endl;
+        file.close();
+        them_vao_file(run->left);
+        them_vao_file(run->right);
+    }
+
+
+};
